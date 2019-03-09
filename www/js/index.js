@@ -16,31 +16,109 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-var app = {
-    // Application Constructor
-    initialize: function() {
-        document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
+let app = {
+    pages: [],
+    show: new Event('show'),
+    init:function(){
+        app.pages = document.querySelectorAll(".page");
+        app.pages.forEach((pg)=>{
+            pg.addEventListener("show", app.pageShown);
+        })
+
+        document.querySelectorAll(".link").forEach((link)=>{
+            link.addEventListener("click", app.nav);
+        })
+        history.replaceState({}, "Home", "#home");
+        window.addEventListener('hashchange', app.poppin);
+        app.addListeners();
+    },
+    nav:function(ev){
+        ev.preventDefault();
+        let currentPage = ev.target.getAttribute('data-target');
+        document.querySelector('.active').classList.remove("active");
+        document.getElementById(currentPage).classList.add('active');
+        history.pushState({}, currentPage, `#${currentPage}`);
+    },
+    pageShown: function(ev){
+
+    },
+    poppin: function(ev){
+        console.log(location.hash, 'popstate event');
+    },
+        
+    
+    addListeners: function() {
+        document.querySelector("#add-btn").addEventListener("click", app.addNote);
+        cordova.plugins.notification.local.on("click", function(notification) {
+            navigator.notification.alert("clicked: " + notification.id);
+
+            console.log(notification.data);
+        });
+        cordova.plugins.notification.local.on("trigger", function(notification){
+            navigator.notification.alert("triggered: ", notification.id);
+        });
     },
 
-    // deviceready Event Handler
-    //
-    // Bind any cordova events here. Common events are:
-    // 'pause', 'resume', etc.
-    onDeviceReady: function() {
-        this.receivedEvent('deviceready');
-    },
+    addNote: function(ev) {
+        //let props = cordova.plugins.notification.local.getDefaults();
 
-    // Update DOM on a Received Event
-    receivedEvent: function(id) {
-        var parentElement = document.getElementById(id);
-        var listeningElement = parentElement.querySelector('.listening');
-        var receivedElement = parentElement.querySelector('.received');
+        let inOneMin = new Date();
+        inOneMin.setMinutes(inOneMin.getMinutes() + 1);
+        let id = new Date().getMilliseconds();
 
-        listeningElement.setAttribute('style', 'display:none;');
-        receivedElement.setAttribute('style', 'display:block;');
+        let noteOptions = {
+            id: id,
+            title: "This is the Title",
+            text: "Don't forget to do the thing!",
+            at: inOneMin,
+            badge: 1,
+            data: {
+                prop: "prop value",
+                num: 42
+            }
+        };
 
-        console.log('Received Event: ' + id);
+        cordova.plugins.notification.local.schedule(noteOptions);
+
+        cordova.plugins.notification.local.GetScheduled(poop => {
+            let list = document.getElementById()
+        })
+
+        navigator.notification.alert("Added notification id " + id);
+
+        cordova.plugins.notification.local.cancel(id, function() {
+        });
+        cordova.plugins.notification.local.clear(id, function() {
+        });
+        cordova.plugins.notification.local.isPresent(id, function(present) {
+        });
     }
+    // Application Constructor
+    // initialize: function() {
+    //     document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
+    // },
+
+    // // deviceready Event Handler
+    // //
+    // // Bind any cordova events here. Common events are:
+    // // 'pause', 'resume', etc.
+    // onDeviceReady: function() {
+    //     this.receivedEvent('deviceready');
+    // },
+
+    // // Update DOM on a Received Event
+    // receivedEvent: function(id) {
+    //     var parentElement = document.getElementById(id);
+    //     var listeningElement = parentElement.querySelector('.listening');
+    //     var receivedElement = parentElement.querySelector('.received');
+
+    //     listeningElement.setAttribute('style', 'display:none;');
+    //     receivedElement.setAttribute('style', 'display:block;');
+
+    //     console.log('Received Event: ' + id);
+    // }
 };
 
-app.initialize();
+document.addEventListener('deviceready', app.init);
+
+//app.initialize();
